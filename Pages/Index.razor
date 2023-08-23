@@ -1,0 +1,166 @@
+﻿@page "/"
+@using BlazorApp2.Data;
+@using Microsoft.AspNetCore.Components.Rendering;
+@using System.Text;
+@using System.Text.Encodings.Web;
+
+<PageTitle>Index</PageTitle>
+
+<h1>Hello, world!</h1>
+
+@((MarkupString)Icons.NormalSvg)
+
+<style>
+    .colored-svg {
+        @foreach(var (key, val) in ConvertSvgIcon(Icons.ColoredSvg))
+        {
+            @($"{key}: {val};")
+        }
+    }
+
+    .normal-svg {
+        @foreach (var (key, val) in ConvertSvgIcon(Icons.NormalSvg))
+        {
+            @($"{key}: {val};")
+        }
+    }
+
+    .rocket-svg {
+        @foreach (var (key, val) in ConvertSvgIcon(Icons.RocketSvg))
+        {
+            @($"{key}: {val};")
+        }
+    }
+
+    .circle-svg {
+        @foreach (var (key, val) in ConvertSvgIcon(Icons.CircleSvg))
+        {
+            @($"{key}: {val};")
+        }
+    }
+</style>
+
+
+
+<div style="font-size: 5rem">
+    @RenderIcon(Icons.Smiley)
+    Hello World!
+</div>
+
+<div style="font-size: 5rem">
+    <div class="colored-svg" style="display: inline-block;"></div>
+    Hello World! György
+</div>
+
+<div style="font-size: 5rem">
+    <div class="rocket-svg" style="display: inline-block;"></div>
+    Hello World! György
+</div>
+
+<div style="font-size: 5rem">
+    <div class="circle-svg" style="display: inline-block;"></div>
+    Hello World! György
+</div>
+
+<div class="normal-svg"></div>
+
+<ul style="font-size: 1.5rem; list-style: none">
+    <li style="color: orangered">
+        @RenderIcon(Icons.ColoredSvg) Color?
+    </li>
+    <li>
+        @RenderIcon(Icons.NormalSvg) Normal?
+    </li>
+    <li>
+        @RenderIcon(Icons.RocketSvg) Rocket?
+    </li>
+    <li style="color: orangered">
+        @RenderIcon(Icons.CircleSvg) Circle?
+    </li>
+</ul>
+
+
+@RenderIcon(Icons.NormalSvg)
+
+
+@RenderIcon(Icons.RocketSvg)
+
+@RenderIcon(Icons.CircleSvg)
+
+@* @RenderIcon(MudBlazor.Icons.Filled.AccessAlarm) *@
+
+@code {
+
+    RenderFragment RenderIcon(string svg)
+    {
+        return (RenderTreeBuilder __builder) =>
+        {
+            __builder.OpenElement(0, "i");
+
+            var attributes = ConvertSvgIcon(svg);
+
+            var style = string.Join("; ", attributes.Select(x => $"{x.Key}: {x.Value}"));
+
+            __builder.AddAttribute(1, "style", style);
+
+            __builder.CloseElement();
+        };
+    }
+
+    Dictionary<string, string> ConvertSvgIcon(string svg)
+    {
+        bool hasCurrentColor = svg.Contains("currentColor");
+
+        // string uri = $"url(data:image/svg+xml;utf8,{EncodeSvg(svg)})";
+        string uri = $"url({ConvertToDataUri(svg)})";
+
+        if (hasCurrentColor)
+        {
+            return new Dictionary<string, string>
+            {
+                { "--icon", uri },
+                { "-webkit-mask", $"{uri}" },
+                { "mask", $"{uri}" },
+                { "-webkit-mask-size", "100% 100%" },
+                { "mask-size", "100% 100%" },
+
+                { "background-color", "currentColor" },
+                { "height", "1em" },
+                { "width", "1em" },
+                { "display", "inline-block" },
+                { "position", "relative" },
+                { "top", ".1em" },
+            };
+        }
+        else
+        {
+            return new Dictionary<string, string>
+            {
+                // { "--icon", uri },
+                // { "background", $"var(--icon) no-repeat center" },
+                { "background", $"{uri} no-repeat center" },
+                { "background-size", "100% 100%" },
+                { "background-color", "transparent" },
+                { "height", "1em" },
+                { "width", "1em" },
+                { "display", "inline-block" },
+                { "position", "relative" },
+                { "top", ".1em" },
+            };
+
+        }
+    }
+
+    static string ConvertToDataUri(string svg)
+    {
+        byte[] svgBytes = Encoding.UTF8.GetBytes(svg);
+        string base64Svg = Convert.ToBase64String(svgBytes);
+        return $"data:image/svg+xml;base64,{base64Svg}";
+    }
+
+    string EncodeSvg(string svg)
+    {
+        return UrlEncoder.Default.Encode(svg);
+    }
+
+}
